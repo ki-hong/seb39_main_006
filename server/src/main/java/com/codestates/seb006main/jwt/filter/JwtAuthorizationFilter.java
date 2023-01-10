@@ -10,6 +10,7 @@ import com.codestates.seb006main.exception.ExceptionCode;
 import com.codestates.seb006main.jwt.JwtUtils;
 import com.codestates.seb006main.members.entity.Member;
 import com.codestates.seb006main.members.repository.MemberRepository;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,6 +20,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import javax.security.sasl.AuthenticationException;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -40,14 +42,23 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
 
-        String accessToken = request.getHeader("Access_HH");
+//        String accessToken = request.getHeader("Access_HH");
+        Cookie[] cookies = request.getCookies();
+        String accessToken = null;
+        for (int i = 0; i < cookies.length; i++) {
+            if(cookies[i].getName().equals("accessToken")){
+                accessToken=cookies[i].getValue();
+            }
+        }
+        System.out.println("인가과정 진입"+accessToken);
 
         if(accessToken == null || !accessToken.startsWith("Bearer") ){
             chain.doFilter(request,response);
         }else if(redisUtils.chkBlacklist(accessToken)){
             throw new AuthenticationException("강탈당한 토큰");
-        }else if (jwtUtils.isTokenExpired(JWT.decode(accessToken.replace("Bearer ", "")))){
-            accessToken=accessToken.replace("Bearer ", "");
+        }else if (jwtUtils.isTokenExpired(JWT.decode(accessToken.replace("Bearer+", "")))){
+//            accessToken=accessToken.replace("Bearer ", "");
+            accessToken=accessToken.replace("Bearer+", "");
             Map<String,Object> memberInfoMap = jwtUtils.getClaimsFromToken(accessToken,"accessKey");
             Long memberId=(Long)memberInfoMap.get("id");
             String refreshToken = redisUtils.getRefreshToken(memberId);
@@ -61,7 +72,15 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
                     Map<String,Object> map = jwtUtils.getClaimsFromToken(refreshToken,"refresh");
                     Member memberEntity = memberRepository.findByEmail((String) map.get("email")).orElseThrow(()->new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND));
                     String access = jwtUtils.createAccessToken((Long)map.get("id") ,(String) map.get("email"),memberEntity.getDisplayName());
-                    response.setHeader("Access_HH",access);
+//                    response.setHeader("Access_HH",access);
+                    ResponseCookie cookie = ResponseCookie.from("accessToken",access)
+                            .maxAge(1000 * 60 * 60)
+                            .path("/")
+                            .secure(true)
+                            .sameSite("none")
+                            .httpOnly(true)
+                            .build();
+                    response.setHeader("Set-Cookie",cookie.toString());
                     PrincipalDetails principalDetails = new PrincipalDetails(memberEntity);
                     Authentication authentication = new UsernamePasswordAuthenticationToken(principalDetails, null,
                             principalDetails.getAuthorities()
@@ -71,7 +90,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
             }
             chain.doFilter(request,response);
         }else{
-            accessToken=accessToken.replace("Bearer ", "");
+            accessToken=accessToken.replace("Bearer+", "");
             Map<String,Object> map = jwtUtils.getClaimsFromToken(accessToken,"access");
 
             Member memberEntity = memberRepository.findByEmail((String) map.get("email")).orElseThrow(()->new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND));

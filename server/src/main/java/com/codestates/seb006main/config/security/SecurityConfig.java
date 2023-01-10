@@ -63,10 +63,10 @@ public class SecurityConfig {
         http
                 .exceptionHandling()
                 .authenticationEntryPoint((request,response,authenticationException)->{
-                    response.sendRedirect("https://hitch-hiker.kr/");
+                    response.sendRedirect("http://localhost:3000/");
                 })
                 .accessDeniedHandler((request, response, accessDeniedException) -> {
-                    response.sendRedirect("https://hitch-hiker.kr/");
+                    response.sendRedirect("http://localhost:3000/");
                     /*
                      * 다시 로그인을 할 수 있도록 해야한다.
                      * 1. 다시 로그인을 시도해주세요 라는 팝업창을 실행 후
@@ -77,7 +77,8 @@ public class SecurityConfig {
         http
                 .logout()
                 .logoutUrl("/api/members/logout")
-                .addLogoutHandler(customLogoutHandler);
+                .addLogoutHandler(customLogoutHandler)
+                .deleteCookies("accessToken");
 
         return http.build();
     }
@@ -105,6 +106,7 @@ public class SecurityConfig {
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.addExposedHeader("Access_HH");
+        config.addExposedHeader("Set-Cookies");
         source.registerCorsConfiguration("/api/**", config);
 
         return new CorsFilter(source);

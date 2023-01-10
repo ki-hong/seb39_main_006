@@ -8,6 +8,7 @@ import com.codestates.seb006main.jwt.JwtUtils;
 import com.codestates.seb006main.members.entity.Member;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -70,7 +71,16 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String accessToken = jwtUtils.createAccessToken(memberId,email,member.getDisplayName());
         String refreshToken = jwtUtils.createRefreshToken(memberId,email);
         redisUtils.setRefreshToken(memberId,refreshToken);
-        response.addHeader("Access_HH", accessToken);
+        ResponseCookie cookie = ResponseCookie.from("accessToken",accessToken)
+                                .maxAge(1000 * 60 * 60)
+                                .path("/")
+                                .secure(true)
+//                .secure(false)
+                                .sameSite("none")
+                                .httpOnly(true)
+                                .build();
+        response.setHeader("Set-Cookie",cookie.toString());
+//        response.addHeader("Access_HH", accessToken);
         chain.doFilter(request,response);
     }
 

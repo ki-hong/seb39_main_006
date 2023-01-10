@@ -75,9 +75,15 @@ public class JwtUtils {
     }
 
     public Long getExpire(String token){
+        DecodedJWT decode=null;
+        System.out.println(token+"ddddddddddddddddd");
+        if(token.startsWith("Bearer ")){
+            decode=JWT.decode(token.replace("Bearer ",""));
 
-        DecodedJWT decode=JWT.decode(token.replace("Bearer ",""));
+        }else{
+            decode=JWT.decode(token.replace("Bearer+",""));
 
+        }
         Date exp = decode.getExpiresAt();
 
         return exp.getTime()-System.currentTimeMillis();

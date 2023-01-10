@@ -7,6 +7,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Service;
 
+
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -23,7 +25,18 @@ public class CustomLogoutHandler implements LogoutHandler {
 
     @Override
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-        String token = request.getHeader("access_hh");
+//        String token = request.getHeader("access_hh");
+        String token = null;
+        Cookie[] cookies = request.getCookies();
+        for (int i = 0; i < cookies.length; i++) {
+            if(cookies[i].getName().equals("accessToken")){
+                System.out.println("엑세스토큰을 확인했습니다.");
+                token = cookies[i].getValue();
+//                cookies[i].setMaxAge(0);
+//                response.addCookie(cookies[i]);
+            }
+        }
+
         Long expire=jwtUtils.getExpire(token);
         redisUtils.setBlacklist(token,expire);
     }

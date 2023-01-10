@@ -5,28 +5,35 @@ import styled, { css } from "styled-components";
 import SockJs from "sockjs-client";
 import StompJs from "stompjs";
 import axios from "axios";
+import { useCookies } from 'react-cookie';
+
 
 const Header = () => {
+	axios.defaults.withCredentials = true;
 	const [msgs, setMsgs] = useState([]);
 	const [msgIds, setMsgIds] = useState([]);
 	const [showMsg, setShowMsg] = useState(false);
 	const [newMsg, setNewMsg] = useState(false);
 	const navigate = useNavigate();
-
+	const [cookies, setCookie, removeCookie] = useCookies(['accessToken']);
 	const logoutHandler = () => {
+		removeCookie('accessToken',{path:'/'});
 		axios(`${process.env.REACT_APP_URL}/api/members/logout`, {
 			headers: {
-				method: "Post",
-				access_hh: sessionStorage.getItem("AccessToken"),
-			},
+				method: "Post"
+			}
+		})
+		.then((res) => {
+			
+
 		});
 		sessionStorage.clear();
-		navigate(`/`);
-		window.location.reload();
+			navigate(`/`);
+			window.location.reload();
 	};
 
 	useEffect(() => {
-		if (sessionStorage.getItem("isLogin")) {
+		if (cookies.accessToken) {
 			axios(`${process.env.REACT_APP_URL}/api/messages/not-read`, {
 				headers: {
 					access_hh: sessionStorage.getItem("AccessToken"),

@@ -5,6 +5,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 
 import { useNavigate } from "react-router-dom";
+axios.defaults.withCredentials = true;
 
 const MyPage = () => {
 	const [userInfo, setUserInfo] = useState("");

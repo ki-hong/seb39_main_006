@@ -3,23 +3,24 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { SubmitBtn } from "../../components/ui/Button";
 import styled from "styled-components";
+import { useCookies } from 'react-cookie';
 
 // import AccountInfo from "./AccountInfo";
 import kakaoLogo from "../../img/kakaologo.png";
 import googleLogo from "../../img/googlelogo.png"
 import naverLogo from "../../img/naverlogo.png"
-
+axios.defaults.withCredentials = true;
 const Login = () => {
   const [validateEmailText, setValidateEmailText] = useState("");
   const [validatePasswordText, setvalidatePasswordText] = useState("");
-
+  const [cookies, setCookie, removeCookie] = useCookies(["accessToken"]);
   const emailInputRef = useRef();
   const passwordInputRef = useRef();
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (sessionStorage.getItem("isLogin")) {
+    if (cookies.accessToken) {
       navigate(`/main`);
     }
   }, []);
@@ -142,7 +143,7 @@ const Login = () => {
               </div>
               <SocilaContainer>
               <div align="center">
-                <a href="https://server.seb-006.shop/authorization/google">
+                <a href="http://localhost:8080/oauth2/authorization/google">
                   <img
                     className="Button"
                     src={googleLogo}
@@ -153,7 +154,7 @@ const Login = () => {
                 </a>
               </div>
               <div align="center">
-                <a href="https://server.seb-006.shop/oauth2/authorization/kakao">
+                <a href="http://localhost:8080/oauth2/authorization/kakao">
                   <img
                     className="Button"
                     src={kakaoLogo}
@@ -164,7 +165,7 @@ const Login = () => {
                 </a>
               </div>
               <div align="center">
-                <a href="https://server.seb-006.shop/oauth2/authorization/naver">
+                <a href="http://localhost:8080/oauth2/authorization/naver">
                   <img
                     className="Button"
                     src={naverLogo}

@@ -6,6 +6,7 @@ import com.codestates.seb006main.jwt.JwtUtils;
 import com.codestates.seb006main.members.entity.Member;
 import com.codestates.seb006main.members.repository.MemberRepository;
 import com.google.gson.Gson;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,16 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         String accessToken = jwtUtils.createAccessToken(member.getMemberId(), member.getEmail(),member.getDisplayName());
         String refreshToken = jwtUtils.createRefreshToken(member.getMemberId(), member.getEmail());
         redisUtils.setRefreshToken(member.getMemberId(),refreshToken);
-        getRedirectStrategy().sendRedirect(request,response,"https://hitch-hiker.kr/oauth2/redirect?token="+accessToken);
+        System.out.println(accessToken);
+        ResponseCookie cookie = ResponseCookie.from("accessToken",accessToken.replace(" ","+"))
+                .maxAge(1000 * 60 * 60)
+                .path("/")
+                .secure(true)
+                .sameSite("None")
+                .httpOnly(true)
+                .build();
+        System.out.println(cookie.toString());
+        response.setHeader("Set-Cookie",cookie.toString());
+        getRedirectStrategy().sendRedirect(request,response,"http://localhost:3000/oauth2/redirect?token="+accessToken);
     }
 }

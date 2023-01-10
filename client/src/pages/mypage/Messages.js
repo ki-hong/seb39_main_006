@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import SideBar from "../../components/SideBar";
 import H1 from "../../components/ui/H1";
 import styled from "styled-components";
-
+axios.defaults.withCredentials = true;
 const Messages = () => {
 	const [messages, setMessages] = useState([]);
 	const [msgIds, setMsgIds] = useState([]);

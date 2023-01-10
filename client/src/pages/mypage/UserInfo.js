@@ -4,6 +4,7 @@ import axios from "axios";
 import styled from "styled-components";
 import CheckDisplayName from "../account/CheckDisplayName";
 import H1 from "../../components/ui/H1";
+axios.defaults.withCredentials = true;
 
 const Userinfo = () => {
 	const [isDisabledInfo, setIsDisabledInfo] = useState(false);

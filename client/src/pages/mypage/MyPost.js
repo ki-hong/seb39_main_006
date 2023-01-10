@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import SideBar from "../../components/SideBar";
 import H1 from "../../components/ui/H1";
 import styled from "styled-components";
+axios.defaults.withCredentials = true;
+
 const MyPost = () => {
 	const [myPost, setMypost] = useState([]);
 	const navigate = useNavigate();
